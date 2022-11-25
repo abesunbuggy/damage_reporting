@@ -17,7 +17,7 @@ try {
     if (str_contains($e, '1062 Duplicate entry')) {
         header("Location: index.php");
     }
-    die("Error inserting user details into database: " .  $e->getMessage());
+    die("Error inserting details into database: " .  $e->getMessage());
     echo "DB Connection Failed: " . $e->getMessage();
 }
 
@@ -25,18 +25,18 @@ $status = "";
 try {
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $prefix = strtoupper($_POST['prefix']);
-        $fleetId = $_POST['fleetId'];
+        $fleetPrefix = strtoupper($_POST['fleetPrefix']);
+        $sunbuggyId = $_POST['sunbuggyId'];
 
 
-        if (empty($prefix) || empty($fleetId)) {
+        if (empty($fleetPrefix) || empty($sunbuggyId)) {
             $status = "All fields are compulsory.";
         } else {
-            if (strlen($prefix) >= 255 || !preg_match("/^[a-z]{2}$/i", $prefix)) {
-                $status = "Please enter a valid prefix ie: QA";
+            if (strlen($fleetPrefix) >= 255 || !preg_match("/^[a-z]{2}$/i", $fleetPrefix)) {
+                $status = "Please enter a valid fleetPrefix ie: QA";
             } else {
 
-                $sql = "INSERT INTO Fleet (prefix, fleetId) VALUES (:prefix, :fleetId)";
+                $sql = "INSERT INTO fleet (fleetPrefix, sunbuggyId) VALUES (:fleetPrefix, :sunbuggyId)";
                 if (!$sql) {
                     echo "Enter a different value";
                 } else {
@@ -45,16 +45,21 @@ try {
 
                 $stmt = $pdo->prepare($sql);
 
-                $stmt->execute(['prefix' => $prefix, 'fleetId' => $fleetId]);
+                $stmt->execute(['fleetPrefix' => $fleetPrefix, 'sunbuggyId' => $sunbuggyId]);
 
-                $status = "Created Fleet: " . $prefix . "-" . $fleetId;
-                $prefix = "";
-                $fleetId = "";
+                $status = "Created Fleet: " . $fleetPrefix . "-" . $sunbuggyId;
+                $fleetPrefix = "";
+                $sunbuggyId = "";
             }
         }
     }
 } catch (Exception $e) {
-    die("Insert error, Please insert a Unique value go back:  " . $status . " already exists");
+    if ($e->getMessage() == "SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'RA-001' for key 'cannotHaveSame'") {
+        echo "failed: duplicate entry  please <a href=\"javascript:history.go(-1)\">GO BACK</a> ";
+    } else {
+        echo $e->getMessage();
+    }
+    die();
 }
 
 ?>
@@ -78,13 +83,13 @@ try {
 
         <form action="" method="POST" class="main-form">
             <div class="form-group">
-                <label for="name">Prefix</label>
-                <input type="text" name="prefix" id="prefix" class="gt-input" value="<?php if ($_SERVER['REQUEST_METHOD'] == 'POST') echo $prefix ?>">
+                <label for="name">Fleet Prefix</label>
+                <input type="text" name="fleetPrefix" id="fleetPrefix" class="gt-input" value="<?php if ($_SERVER['REQUEST_METHOD'] == 'POST') echo $fleetPrefix ?>">
             </div>
 
             <div class="form-group">
-                <label for="fleetId">Fleet Id</label>
-                <input type="text" name="fleetId" id="fleetId" class="gt-input" value="<?php if ($_SERVER['REQUEST_METHOD'] == 'POST') echo $fleetId ?>">
+                <label for="sunbuggyId">Sunbuggy Id</label>
+                <input type="text" name="sunbuggyId" id="sunbuggyId" class="gt-input" value="<?php if ($_SERVER['REQUEST_METHOD'] == 'POST') echo $sunbuggyId ?>">
             </div>
             <input type="submit" class="gt-button" value="Submit">
 
